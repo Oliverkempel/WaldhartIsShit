@@ -5,6 +5,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.Intrinsics.Arm;
     using System.Text;
     using System.Threading.Tasks;
 
@@ -16,9 +17,14 @@
 
         // Parameterize me
         public string getCoursesPath { get; set; } = "mycourses/get_courses_forecast_list?from_date_iso=%1&to_date_iso=%2";
-
         // Parameterize me
-        public string getCoursePath { get; set; } = "mycourses/course/get_course_data?journal_id=&course_id=%1&course_day_iso=%2";
+        public string getCoursePath { get; set; } = "mycourses/course/get_course_data?journal_id=%1&course_id=%2&course_day_iso=%3";
+        // Parameterize me
+        public string getSessionIdPath { get; set; } = "login?username=%1&password=%2";
+
+
+        public string sessionCookie { get; set; } = "";
+
         public RestClient client { get; set; }
         public RestClientOptions options { get; set; }
         public WaldhartRequestHandler() 
@@ -30,25 +36,92 @@
             };
             client = new RestClient(options);
         }
-
-        public void getCoursesForDateRange()
+        /// <summary>
+        /// Gets the session id for waldhart.
+        /// </summary>
+        /// <param name="username">The username for your waldhart account. eg. JhonDoe12</param>
+        /// <param name="password">The password for your waldhart account. eg. 1234</param>
+        public string? login(string username, string password)
         {
-            RestRequest request = new RestRequest();
+            string? sessionId = getSessionId(username, password).Cookies?.Where(cookie => cookie.Name == "session_id")?.FirstOrDefault()?.Value;
+
+            return sessionId;
         }
-        public void getCourse()
+
+        /// <summary>
+        /// Fetches courses for a specified date range.
+        /// </summary>
+        /// <param name="fromDate">The from date in ISO format. yyyy-MM-dd</param>
+        /// <param name="toDate">The to date in ISO format. yyyy-MM-dd</param>
+        /// <returns></returns>
+        public string fetchCoursesFromDateRange(DateOnly fromDate, DateOnly toDate)
         {
+            RestResponse response = getCoursesForecast(fromDate, toDate);
+            string? responseContent = response.Content;
 
+            // DO CONVERSION HERE!!!!
+
+            return responseContent;
         }
 
-        public Uri CreateGetCoursesUri(DateOnly fromDate, DateOnly toDate)
+        /// <summary>
+        /// Fetches data from a specific course.
+        /// </summary>
+        /// <param name="journalId">The journal id of the course, can be left empty</param>
+        /// <param name="courseId">The course id</param>
+        /// <param name="date">the date of the course</param>
+        /// <returns></returns>
+        public string fetchCourseData(int journalId, int courseId, DateOnly date)
+        {
+            RestResponse response = getCourseData(journalId, courseId, date);
+            string? responseContent = response.Content;
+
+            return responseContent;
+        }
+
+        private RestResponse getSessionId(string userId, string userPass)
+        {
+            RestRequest request = new RestRequest(CreateGetSessionIdUri(userId, userPass));
+            request.AddCookie("session_id", "9cd1edeb2d7d6a4162355a84f69ddd7369165457", "/", "kvitfjell-desk.skischoolshop.com");
+
+            RestResponse response = client.Execute(request);
+
+            return response;
+        }
+
+        private RestResponse getCoursesForecast(DateOnly fromDate, DateOnly toDate)
+        {
+            RestRequest request = new RestRequest(CreateGetCoursesUri(fromDate, toDate).ToString(), Method.Get);
+            request.AddCookie("session_id", "9cd1edeb2d7d6a4162355a84f69ddd7369165457", "/", "kvitfjell-desk.skischoolshop.com");
+
+            RestResponse? response = client.Execute(request);
+
+            return response;
+        }
+        private RestResponse getCourseData(int journalId, int courseId, DateOnly courseDate)
+        {
+            RestRequest request = new RestRequest(CreateGetCourseUri(journalId, courseId, courseDate).ToString(), Method.Get);
+            request.AddCookie("session_id", "9cd1edeb2d7d6a4162355a84f69ddd7369165457", "/", "kvitfjell-desk.skischoolshop.com");
+
+            RestResponse? response = client.Execute(request);
+
+            return response;
+        }
+
+        private Uri CreateGetCoursesUri(DateOnly fromDate, DateOnly toDate)
         {
             return new Uri(WaldhartUrl, getCoursesPath.Replace("%1", fromDate.ToString(DateOnlyFormat)).Replace("%2", toDate.ToString(DateOnlyFormat)));
         }
 
-        public Uri CreateGetCourseUri(int courseId, DateOnly courseDate)
+        private Uri CreateGetSessionIdUri(string userId, string userPass)
         {
-            string test = getCoursePath.Replace("%1", courseId.ToString()).Replace("%2", courseDate.ToString(DateOnlyFormat));
-            return new Uri(WaldhartUrl, getCoursePath.Replace("%1", courseId.ToString()).Replace("%2", courseDate.ToString(DateOnlyFormat)));
+            return new Uri(WaldhartUrl, getSessionIdPath.Replace("%1", userId).Replace("%2", userPass));
+        }
+
+        private Uri CreateGetCourseUri(int journalId, int courseId, DateOnly courseDate)
+        {
+            string test = getCoursePath.Replace("%1", journalId.ToString()).Replace("%2", courseId.ToString()).Replace("%3", courseDate.ToString(DateOnlyFormat));
+            return new Uri(WaldhartUrl, getCoursePath.Replace("%1", journalId.ToString()).Replace("%2", courseId.ToString()).Replace("%3", courseDate.ToString(DateOnlyFormat)));
         }
     }
 }
