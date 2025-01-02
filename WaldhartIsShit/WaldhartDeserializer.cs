@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
     using HtmlAgilityPack;
@@ -35,6 +36,20 @@
                         if (nextSibling.SelectSingleNode(".//a") != null)
                         {
                             string MoreInfoUrl = nextSibling.SelectSingleNode(".//a").GetAttributeValue("href", "");
+
+                            string regexString = @"journal_id=(\d+)";
+                            string regexString1 = @"course_id=(\d+)";
+                            Regex regex = new Regex(regexString);
+                            Regex regex1 = new Regex(regexString1);
+
+                            string journalIdResult = regex.Match(MoreInfoUrl).Groups[1].Value;
+                            string courseIdResult = regex1.Match(MoreInfoUrl).Groups[1].Value;
+                            Console.WriteLine("===================================");
+                            Console.WriteLine($"JournalID: {journalIdResult}");
+                            Console.WriteLine($"CourseID: {courseIdResult}");
+                            Console.WriteLine("===================================");
+                            Console.WriteLine("\n");
+
                             string CourseString = nextSibling.SelectSingleNode(".//a").InnerText.Trim();
                             //Console.WriteLine(WaldhartUrl + MoreInfoUrl);
                             //Console.WriteLine($"Course:    {CourseString}");

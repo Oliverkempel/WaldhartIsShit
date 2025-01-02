@@ -83,6 +83,7 @@
         {
             RestRequest request = new RestRequest(CreateGetSessionIdUri(userId, userPass));
             request.AddCookie("session_id", "9cd1edeb2d7d6a4162355a84f69ddd7369165457", "/", "kvitfjell-desk.skischoolshop.com");
+            request.AddCookie("L", "en", "/", "kvitfjell-desk.skischoolshop.com");
 
             RestResponse response = client.Execute(request);
 
@@ -93,6 +94,7 @@
         {
             RestRequest request = new RestRequest(CreateGetCoursesUri(fromDate, toDate).ToString(), Method.Get);
             request.AddCookie("session_id", "9cd1edeb2d7d6a4162355a84f69ddd7369165457", "/", "kvitfjell-desk.skischoolshop.com");
+            request.AddCookie("L", "en", "/", "kvitfjell-desk.skischoolshop.com");
 
             RestResponse? response = client.Execute(request);
 
@@ -102,6 +104,7 @@
         {
             RestRequest request = new RestRequest(CreateGetCourseUri(journalId, courseId, courseDate).ToString(), Method.Get);
             request.AddCookie("session_id", "9cd1edeb2d7d6a4162355a84f69ddd7369165457", "/", "kvitfjell-desk.skischoolshop.com");
+            request.AddCookie("L", "en", "/", "kvitfjell-desk.skischoolshop.com");
 
             RestResponse? response = client.Execute(request);
 
