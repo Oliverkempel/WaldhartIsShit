@@ -9,20 +9,33 @@
 
     using HtmlAgilityPack;
 
+    using WaldhartIsShit.Models.Responses;
+
     public static class WaldhartDeserializer
     {
 
-        public static void ConvertWaldhartResponse(string response)
+        public static List<GetCoursesForecastResponse> ConvertGetCoursesForecastResponse(string response)
         {
+            List<GetCoursesForecastResponse> methodResponse = new List<GetCoursesForecastResponse>();
+
             string WaldhartUrl = "https://kvitfjell-desk.skischoolshop.com";
             var HtmlDoc = new HtmlDocument();
 
             HtmlDoc.LoadHtml(response);
 
+            // Handle null exception for below code
             foreach (var DayNode in HtmlDoc.DocumentNode.SelectNodes("//li[@data-role='list-divider']"))
             {
+                // gets date string from header segment
                 string DayNodestr = DayNode.InnerText.Trim();
-                Console.WriteLine($"Day Node:   {DayNodestr}");
+                string pattern = @"(\d{4}-\d{2}-\d{1,2}).*";
+                Match m = Regex.Match(DayNodestr, pattern);
+                string dateString = m.Value;
+                DateOnly courseDate = DateOnly.Parse(dateString);
+
+                Console.WriteLine(">>>>>>>>>>>>>> DATE <<<<<<<<<<<<<<<");
+                Console.WriteLine($"{courseDate.ToString()}");
+                Console.WriteLine(">>>>>>>>>>>>>> DATE <<<<<<<<<<<<<<<");
 
 
                 // Find courses under this date
@@ -35,22 +48,56 @@
                     {
                         if (nextSibling.SelectSingleNode(".//a") != null)
                         {
+                            GetCoursesForecastResponse courseResponse = new GetCoursesForecastResponse();
+
                             string MoreInfoUrl = nextSibling.SelectSingleNode(".//a").GetAttributeValue("href", "");
+                            
+                            string journalRegexStr = @"journal_id=(\d+)";
+                            string courseRegrxStr = @"course_id=(\d+)";
+                            Regex journalRegex = new Regex(journalRegexStr);
+                            Regex courseRegex = new Regex(courseRegrxStr);
 
-                            string regexString = @"journal_id=(\d+)";
-                            string regexString1 = @"course_id=(\d+)";
-                            Regex regex = new Regex(regexString);
-                            Regex regex1 = new Regex(regexString1);
+                            string journalIdResult = journalRegex.Match(MoreInfoUrl).Groups[1].Value;
+                            string courseIdResult = courseRegex.Match(MoreInfoUrl).Groups[1].Value;
 
-                            string journalIdResult = regex.Match(MoreInfoUrl).Groups[1].Value;
-                            string courseIdResult = regex1.Match(MoreInfoUrl).Groups[1].Value;
-                            Console.WriteLine("===================================");
-                            Console.WriteLine($"JournalID: {journalIdResult}");
-                            Console.WriteLine($"CourseID: {courseIdResult}");
-                            Console.WriteLine("===================================");
-                            Console.WriteLine("\n");
+                            int tempCourseId;
+                            int tempJournalId;
+                            Int32.TryParse(courseIdResult, out tempCourseId);
+                            Int32.TryParse(journalIdResult, out tempJournalId);
+                            courseResponse.CourseId = tempCourseId;
+                            courseResponse.JournalId = tempJournalId;
+                            string tagContent = nextSibling.SelectSingleNode(".//a").InnerText;
 
-                            string CourseString = nextSibling.SelectSingleNode(".//a").InnerText.Trim();
+                            Regex trimmer = new Regex(@"[^\S\r\n]+");
+
+                            tagContent = trimmer.Replace(tagContent, " ");
+
+
+                            string[] contentArray = tagContent.Split("\n");
+                            string[] resultContentArray = new string[5];
+
+                            int resultContentArrayIteration = 0;
+                            for(int i = 0; i < contentArray.Count(); i++)
+                            { 
+                                if((contentArray[i] != "" && contentArray[i] != " ") || contentArray[i] == "\n")
+                                {
+                                    resultContentArray[resultContentArrayIteration] = contentArray[i];
+                                    resultContentArrayIteration++;
+                                }
+                            }
+
+                            courseResponse.Title = resultContentArray[0];
+                            courseResponse.PersonName = resultContentArray[1];
+                            courseResponse.MeetingPoint = resultContentArray[2];
+                            courseResponse.TimeSpan = resultContentArray[3];
+                            courseResponse.CourseDate = courseDate;
+
+                            methodResponse.Add(courseResponse);
+
+
+                            //DO another call mf
+
+                            //string CourseString = nextSibling.SelectSingleNode(".//a").InnerText.Trim();
                             //Console.WriteLine(WaldhartUrl + MoreInfoUrl);
                             //Console.WriteLine($"Course:    {CourseString}");
 
@@ -62,7 +109,18 @@
 
             }
 
+            return methodResponse;
+
         }
+
+        public static void ConvertGetCourseDataResponse(string response)
+        {
+
+
+
+        }
+
+
 
     }
 }

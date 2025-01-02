@@ -7,6 +7,7 @@
     using System.Runtime.CompilerServices;
 
     using WaldhartIsShit;
+    using WaldhartIsShit.Models.Responses;
 
     internal class Program
     {
@@ -31,8 +32,27 @@
             string res = ReqHandler.login(username, password);
             Console.WriteLine(res);
 
-            string? result = ReqHandler.fetchCoursesFromDateRange(new DateOnly(2024, 12, 1), new DateOnly(2024, 12, 31));
-            WaldhartDeserializer.ConvertWaldhartResponse(result);
+            string? result = ReqHandler.fetchCoursesFromDateRange(new DateOnly(2025, 1, 2), new DateOnly(2025, 1, 4));
+            List<GetCoursesForecastResponse> resp = WaldhartDeserializer.ConvertGetCoursesForecastResponse(result);
+
+            foreach(GetCoursesForecastResponse curResp in resp)
+            {
+                Console.WriteLine("===================================");
+                Console.WriteLine($"CourseDate: {curResp.CourseDate}");
+                Console.WriteLine($"JournalID: {curResp.JournalId}");
+                Console.WriteLine($"CourseID: {curResp.CourseId}");
+                Console.WriteLine($"Title: {curResp.Title}");
+                Console.WriteLine($"MeetingPoint: {curResp.MeetingPoint}");
+                Console.WriteLine($"PersonName: {curResp.PersonName}");
+                Console.WriteLine("===================================");
+                Console.WriteLine("\n");
+
+                string dataResponse = ReqHandler.fetchCourseData(curResp.JournalId, curResp.CourseId, curResp.CourseDate);
+            }
+
+
+            //ReqHandler.fetchCourseData( );
+
 
         }
 
