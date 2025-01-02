@@ -23,7 +23,7 @@
         public string getSessionIdPath { get; set; } = "login?username=%1&password=%2";
 
 
-        public string sessionCookie { get; set; } = "";
+        public string sessionCookie { get; set; } = "8d1eb25817e5f0bb488168d9154ce1533305fe3f";
 
         public RestClient client { get; set; }
         public RestClientOptions options { get; set; }
@@ -44,6 +44,7 @@
         public string? login(string username, string password)
         {
             string? sessionId = getSessionId(username, password).Cookies?.Where(cookie => cookie.Name == "session_id")?.FirstOrDefault()?.Value;
+            sessionCookie = sessionId;
 
             return sessionId;
         }
@@ -82,7 +83,7 @@
         private RestResponse getSessionId(string userId, string userPass)
         {
             RestRequest request = new RestRequest(CreateGetSessionIdUri(userId, userPass));
-            request.AddCookie("session_id", "8d1eb25817e5f0bb488168d9154ce1533305fe3f", "/", "kvitfjell-desk.skischoolshop.com");
+            request.AddCookie("session_id", $"{sessionCookie}", "/", "kvitfjell-desk.skischoolshop.com");
             request.AddCookie("L", "en", "/", "kvitfjell-desk.skischoolshop.com");
 
             RestResponse response = client.Execute(request);
@@ -93,7 +94,7 @@
         private RestResponse getCoursesForecast(DateOnly fromDate, DateOnly toDate)
         {
             RestRequest request = new RestRequest(CreateGetCoursesUri(fromDate, toDate).ToString(), Method.Get);
-            request.AddCookie("session_id", "8d1eb25817e5f0bb488168d9154ce1533305fe3f", "/", "kvitfjell-desk.skischoolshop.com");
+            request.AddCookie("session_id", $"{sessionCookie}", "/", "kvitfjell-desk.skischoolshop.com");
             request.AddCookie("L", "en", "/", "kvitfjell-desk.skischoolshop.com");
 
             RestResponse? response = client.Execute(request);
@@ -103,7 +104,7 @@
         private RestResponse getCourseData(int journalId, int courseId, DateOnly courseDate)
         {
             RestRequest request = new RestRequest(CreateGetCourseUri(journalId, courseId, courseDate).ToString(), Method.Get);
-            request.AddCookie("session_id", "8d1eb25817e5f0bb488168d9154ce1533305fe3f", "/", "kvitfjell-desk.skischoolshop.com");
+            request.AddCookie("session_id", $"{sessionCookie}", "/", "kvitfjell-desk.skischoolshop.com");
             request.AddCookie("L", "en", "/", "kvitfjell-desk.skischoolshop.com");
 
             RestResponse? response = client.Execute(request);

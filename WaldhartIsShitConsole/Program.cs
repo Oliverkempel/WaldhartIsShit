@@ -38,16 +38,29 @@
             foreach(GetCoursesForecastResponse curResp in resp)
             {
                 Console.WriteLine("===================================");
-                Console.WriteLine($"CourseDate: {curResp.CourseDate}");
-                Console.WriteLine($"JournalID: {curResp.JournalId}");
-                Console.WriteLine($"CourseID: {curResp.CourseId}");
-                Console.WriteLine($"Title: {curResp.Title}");
-                Console.WriteLine($"MeetingPoint: {curResp.MeetingPoint}");
-                Console.WriteLine($"PersonName: {curResp.PersonName}");
-                Console.WriteLine("===================================");
-                Console.WriteLine("\n");
+                //Console.WriteLine($"CourseDate: {curResp.CourseDate}");
+                //Console.WriteLine($"JournalID: {curResp.JournalId}");
+                //Console.WriteLine($"CourseID: {curResp.CourseId}");
+                //Console.WriteLine($"Title: {curResp.Title}");
+                //Console.WriteLine($"MeetingPoint: {curResp.MeetingPoint}");
+                //Console.WriteLine($"PersonName: {curResp.PersonName}");
+
 
                 string dataResponse = ReqHandler.fetchCourseData(curResp.JournalId, curResp.CourseId, curResp.CourseDate);
+                GetCourseInfoResponse courseDataResp = WaldhartDeserializer.ConvertGetCourseDataResponse(dataResponse);
+
+                Console.WriteLine($"Date: {courseDataResp.courseDate}");
+                Console.WriteLine($"Time: {courseDataResp.courseTime}");
+                Console.WriteLine($"From: {courseDataResp.courseFromDateTime}");
+                Console.WriteLine($"To: {courseDataResp.courseToDateTime}");
+                Console.WriteLine($"Meeting Time: {courseDataResp.courseMeetingTime}");
+                Console.WriteLine($"Duration: {courseDataResp.courseDuration}");
+                Console.WriteLine($"Skill: {courseDataResp.courseSkill}");
+                Console.WriteLine($"Participants count: {courseDataResp.participantsCount}");
+
+
+                Console.WriteLine("===================================");
+                Console.WriteLine("\n");
             }
 
 

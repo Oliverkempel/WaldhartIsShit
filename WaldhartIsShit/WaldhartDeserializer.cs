@@ -19,7 +19,7 @@
             List<GetCoursesForecastResponse> methodResponse = new List<GetCoursesForecastResponse>();
 
             string WaldhartUrl = "https://kvitfjell-desk.skischoolshop.com";
-            var HtmlDoc = new HtmlDocument();
+            HtmlDocument? HtmlDoc = new HtmlDocument();
 
             HtmlDoc.LoadHtml(response);
 
@@ -33,9 +33,9 @@
                 string dateString = m.Value;
                 DateOnly courseDate = DateOnly.Parse(dateString);
 
-                Console.WriteLine(">>>>>>>>>>>>>> DATE <<<<<<<<<<<<<<<");
-                Console.WriteLine($"{courseDate.ToString()}");
-                Console.WriteLine(">>>>>>>>>>>>>> DATE <<<<<<<<<<<<<<<");
+                //Console.WriteLine(">>>>>>>>>>>>>> DATE <<<<<<<<<<<<<<<");
+                //Console.WriteLine($"{courseDate.ToString()}");
+                //Console.WriteLine(">>>>>>>>>>>>>> DATE <<<<<<<<<<<<<<<");
 
 
                 // Find courses under this date
@@ -94,13 +94,6 @@
 
                             methodResponse.Add(courseResponse);
 
-
-                            //DO another call mf
-
-                            //string CourseString = nextSibling.SelectSingleNode(".//a").InnerText.Trim();
-                            //Console.WriteLine(WaldhartUrl + MoreInfoUrl);
-                            //Console.WriteLine($"Course:    {CourseString}");
-
                         }
                     }
 
@@ -113,14 +106,79 @@
 
         }
 
-        public static void ConvertGetCourseDataResponse(string response)
+        public static GetCourseInfoResponse ConvertGetCourseDataResponse(string response)
         {
+            // init classes
+            GetCourseInfoResponse classResponse = new GetCourseInfoResponse();
+            HtmlDocument htmlDoc = new HtmlDocument();
 
+            htmlDoc.LoadHtml(response);
 
+            // get the div containing the spans
+            HtmlNode? topDiv = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='row row-cols-2']");
 
+            // loop through all spans in html document
+            List<string> contentList = new List<string>();
+            int actualNodeIteration = 0;
+            for(int x = 0; x < topDiv.ChildNodes.Count; x++)
+            {
+                HtmlNode curNode = topDiv.ChildNodes[x];
+
+                // If current node is a span, add it to the content list
+                if (curNode.Name == "span")
+                {
+                    contentList.Add(curNode.InnerText);
+                }
+            }
+
+            // loop through the content list
+            for(int y = 0; y < contentList.Count; y++)
+            {
+                // figure out what the current data is and add it to classResponse
+                switch (contentList[y])
+                {
+                    case "Number of participants:":
+                        classResponse.participantsCount = contentList[y + 1];
+                        break;
+                    case "Duration of course:":
+                        classResponse.courseDuration = contentList[y + 1];
+                        break;
+                    case "From:":
+                        classResponse.courseFromDateTime = contentList[y + 1];
+                        break;
+                    case "To:":
+                        classResponse.courseToDateTime = contentList[y + 1];
+                        break;
+                    case "Course date:":
+                        classResponse.courseDate = contentList[y + 1];
+                        break;
+                    case "Meeting point:":
+                        classResponse.courseMeetingPoint = contentList[y + 1];
+                        break;
+                    case "Meeting time:":
+                        classResponse.courseMeetingTime = contentList[y + 1];
+                        break;
+                    case "Course time:":
+                        classResponse.courseTime = contentList[y + 1];
+                        break;
+                    case "Skill:":
+                        classResponse.courseSkill = contentList[y + 1];
+                        break;
+                    case "Paid:":
+                        classResponse.paidState = contentList[y + 1];
+                        break;
+                    case "State:":
+                        classResponse.courseState = contentList[y + 1];
+                        break;
+                    case "Group type:":
+                        classResponse.courseState = contentList[y + 1];
+                        break;
+                }
+            }
+           
+            // return class response
+            return classResponse;
         }
-
-
 
     }
 }
