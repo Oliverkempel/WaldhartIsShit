@@ -32,22 +32,25 @@
             string res = ReqHandler.login(username, password);
             Console.WriteLine(res);
 
-            string? result = ReqHandler.fetchCoursesFromDateRange(new DateOnly(2025, 1, 2), new DateOnly(2025, 1, 4));
+            string? result = ReqHandler.fetchCoursesFromDateRange(new DateOnly(2025, 1, 2), new DateOnly(2025, 1, 29));
             List<GetCoursesForecastResponse> resp = WaldhartDeserializer.ConvertGetCoursesForecastResponse(result);
 
             foreach(GetCoursesForecastResponse curResp in resp)
             {
                 Console.WriteLine("===================================");
-                //Console.WriteLine($"CourseDate: {curResp.CourseDate}");
-                //Console.WriteLine($"JournalID: {curResp.JournalId}");
-                //Console.WriteLine($"CourseID: {curResp.CourseId}");
-                //Console.WriteLine($"Title: {curResp.Title}");
-                //Console.WriteLine($"MeetingPoint: {curResp.MeetingPoint}");
-                //Console.WriteLine($"PersonName: {curResp.PersonName}");
 
+                GetCourseInfoResponse courseDataResp = new GetCourseInfoResponse();
+                if (curResp.CourseId != 0 || curResp.JournalId != 0)
+                {
+                    string dataResponse = ReqHandler.fetchCourseData(curResp.JournalId, curResp.CourseId, curResp.CourseDate);
+                    courseDataResp = WaldhartDeserializer.ConvertGetCourseDataResponse(dataResponse);
+                } else
+                {
+                    courseDataResp.courseDate = curResp.CourseDate.ToString();
+                    courseDataResp.courseSkill = curResp.Title;
+                    courseDataResp.courseTime = curResp.TimeSpan;
+                }
 
-                string dataResponse = ReqHandler.fetchCourseData(curResp.JournalId, curResp.CourseId, curResp.CourseDate);
-                GetCourseInfoResponse courseDataResp = WaldhartDeserializer.ConvertGetCourseDataResponse(dataResponse);
 
                 Console.WriteLine($"Date: {courseDataResp.courseDate}");
                 Console.WriteLine($"Time: {courseDataResp.courseTime}");

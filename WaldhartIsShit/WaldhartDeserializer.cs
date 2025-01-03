@@ -33,14 +33,8 @@
                 string dateString = m.Value;
                 DateOnly courseDate = DateOnly.Parse(dateString);
 
-                //Console.WriteLine(">>>>>>>>>>>>>> DATE <<<<<<<<<<<<<<<");
-                //Console.WriteLine($"{courseDate.ToString()}");
-                //Console.WriteLine(">>>>>>>>>>>>>> DATE <<<<<<<<<<<<<<<");
-
-
                 // Find courses under this date
-                var nextSibling = DayNode.NextSibling;
-
+                HtmlNode? nextSibling = DayNode.NextSibling;
 
                 while (nextSibling != null && !nextSibling.GetAttributeValue("data-role", "").Equals("list-divider"))
                 {
@@ -50,47 +44,79 @@
                         {
                             GetCoursesForecastResponse courseResponse = new GetCoursesForecastResponse();
 
-                            string MoreInfoUrl = nextSibling.SelectSingleNode(".//a").GetAttributeValue("href", "");
-                            
-                            string journalRegexStr = @"journal_id=(\d+)";
-                            string courseRegrxStr = @"course_id=(\d+)";
-                            Regex journalRegex = new Regex(journalRegexStr);
-                            Regex courseRegex = new Regex(courseRegrxStr);
+                            HtmlNode? aNode = nextSibling.SelectSingleNode(".//a[@class='main_link']");
 
-                            string journalIdResult = journalRegex.Match(MoreInfoUrl).Groups[1].Value;
-                            string courseIdResult = courseRegex.Match(MoreInfoUrl).Groups[1].Value;
+                            if(aNode != null)
+                            {
+                                string MoreInfoUrl = aNode.GetAttributeValue("href", "");
 
-                            int tempCourseId;
-                            int tempJournalId;
-                            Int32.TryParse(courseIdResult, out tempCourseId);
-                            Int32.TryParse(journalIdResult, out tempJournalId);
-                            courseResponse.CourseId = tempCourseId;
-                            courseResponse.JournalId = tempJournalId;
-                            string tagContent = nextSibling.SelectSingleNode(".//a").InnerText;
+                                string journalRegexStr = @"journal_id=(\d+)";
+                                string courseRegrxStr = @"course_id=(\d+)";
+                                Regex journalRegex = new Regex(journalRegexStr);
+                                Regex courseRegex = new Regex(courseRegrxStr);
 
-                            Regex trimmer = new Regex(@"[^\S\r\n]+");
+                                string journalIdResult = journalRegex.Match(MoreInfoUrl).Groups[1].Value;
+                                string courseIdResult = courseRegex.Match(MoreInfoUrl).Groups[1].Value;
 
-                            tagContent = trimmer.Replace(tagContent, " ");
+                                int tempCourseId;
+                                int tempJournalId;
+                                Int32.TryParse(courseIdResult, out tempCourseId);
+                                Int32.TryParse(journalIdResult, out tempJournalId);
+                                courseResponse.CourseId = tempCourseId;
+                                courseResponse.JournalId = tempJournalId;
+                                string tagContent = nextSibling.SelectSingleNode(".//a").InnerText;
+
+                                Regex trimmer = new Regex(@"[^\S\r\n]+");
+
+                                tagContent = trimmer.Replace(tagContent, " ");
 
 
-                            string[] contentArray = tagContent.Split("\n");
-                            string[] resultContentArray = new string[5];
+                                string[] contentArray = tagContent.Split("\n");
+                                string[] resultContentArray = new string[5];
 
-                            int resultContentArrayIteration = 0;
-                            for(int i = 0; i < contentArray.Count(); i++)
-                            { 
-                                if((contentArray[i] != "" && contentArray[i] != " ") || contentArray[i] == "\n")
+                                int resultContentArrayIteration = 0;
+                                for (int i = 0; i < contentArray.Count(); i++)
                                 {
-                                    resultContentArray[resultContentArrayIteration] = contentArray[i];
-                                    resultContentArrayIteration++;
+                                    if ((contentArray[i] != "" && contentArray[i] != " ") || contentArray[i] == "\n")
+                                    {
+                                        resultContentArray[resultContentArrayIteration] = contentArray[i];
+                                        resultContentArrayIteration++;
+                                    }
                                 }
-                            }
 
-                            courseResponse.Title = resultContentArray[0];
-                            courseResponse.PersonName = resultContentArray[1];
-                            courseResponse.MeetingPoint = resultContentArray[2];
-                            courseResponse.TimeSpan = resultContentArray[3];
-                            courseResponse.CourseDate = courseDate;
+                                courseResponse.Title = resultContentArray[0];
+                                courseResponse.PersonName = resultContentArray[1];
+                                courseResponse.MeetingPoint = resultContentArray[2];
+                                courseResponse.TimeSpan = resultContentArray[3];
+                                courseResponse.CourseDate = courseDate;
+                            } else
+                            {
+                                aNode = nextSibling.SelectSingleNode(".//a[@data-rel='popup']");
+
+                                string tagContent = aNode.SelectSingleNode(".//span").InnerHtml;
+
+                                Regex trimmer = new Regex(@"[^\S\r\n]+");
+
+                                tagContent = trimmer.Replace(tagContent, " ");
+
+                                string[] contentArray = tagContent.Split("\n");
+                                string[] resultContentArray = new string[2];
+
+                                int resultContentArrayIteration = 0;
+                                for (int i = 0; i < contentArray.Count(); i++)
+                                {
+                                    if ((contentArray[i] != "" && contentArray[i] != " " && !contentArray[i].Contains("<br>")) || contentArray[i] == "\n")
+                                    {
+                                        resultContentArray[resultContentArrayIteration] = contentArray[i];
+                                        resultContentArrayIteration++;
+                                    }
+                                }
+
+                                courseResponse.Title = resultContentArray[0];
+                                courseResponse.CourseDate = courseDate;
+                                courseResponse.TimeSpan = resultContentArray[1];
+
+                            }
 
                             methodResponse.Add(courseResponse);
 
