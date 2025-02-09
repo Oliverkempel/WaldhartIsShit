@@ -7,6 +7,29 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        
+        <Label VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30">Waldhart is shit UI</Label>
+
+        <StackPanel Grid.Row="1" Margin="10">
+            <Label FontWeight="SemiBold" Content="Waldhart User ID:"/>
+            <TextBox x:Name="UserIdInput" Text="94" Padding="10" FontWeight="SemiBold"/>
+            <Button Content="Fetch Infos" Click="Login_Click"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="2" x:Name="ResultsList" Margin="10">
+            <!--<DataGrid.Columns>
+                <DataGridTextColumn/>
+            </DataGrid.Columns>-->
+
+        </DataGrid>
 
     </Grid>
 </Window>

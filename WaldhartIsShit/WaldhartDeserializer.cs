@@ -30,8 +30,8 @@
                 string DayNodestr = DayNode.InnerText.Trim();
                 string pattern = @"(\d{4}-\d{2}-\d{1,2}).*";
                 Match m = Regex.Match(DayNodestr, pattern);
-                string dateString = m.Value;
-                DateOnly courseDate = DateOnly.Parse(dateString);
+                DayNodestr = m.Value;
+                //DateOnly courseDate = DateOnly.Parse(dateString);
 
                 // Find courses under this date
                 HtmlNode? nextSibling = DayNode.NextSibling;
@@ -64,6 +64,9 @@
                                 Int32.TryParse(journalIdResult, out tempJournalId);
                                 courseResponse.CourseId = tempCourseId;
                                 courseResponse.JournalId = tempJournalId;
+
+                                // Below is goofy, dont assume lines have meaning, the only importent data in this step is: JournalID, CourseID and CourseTime
+
                                 string tagContent = nextSibling.SelectSingleNode(".//a").InnerText;
 
                                 Regex trimmer = new Regex(@"[^\S\r\n]+");
@@ -84,11 +87,12 @@
                                     }
                                 }
 
-                                courseResponse.Title = resultContentArray[0];
-                                courseResponse.PersonName = resultContentArray[1];
-                                courseResponse.MeetingPoint = resultContentArray[2];
-                                courseResponse.TimeSpan = resultContentArray[3];
-                                courseResponse.CourseDate = courseDate;
+                                courseResponse.Data01 = resultContentArray[0];
+                                courseResponse.Data02 = resultContentArray[1];
+                                courseResponse.Data03 = resultContentArray[2];
+                                courseResponse.Data04 = resultContentArray[3];
+
+                                courseResponse.CourseDate = DayNodestr;
                             } else
                             {
                                 aNode = nextSibling.SelectSingleNode(".//a[@data-rel='popup']");
@@ -112,9 +116,9 @@
                                     }
                                 }
 
-                                courseResponse.Title = resultContentArray[0];
-                                courseResponse.CourseDate = courseDate;
-                                courseResponse.TimeSpan = resultContentArray[1];
+                                courseResponse.Data01 = resultContentArray[0];
+                                courseResponse.CourseDate = DayNodestr;
+                                courseResponse.Data04 = resultContentArray[1];
 
                             }
 

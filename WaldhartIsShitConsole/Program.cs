@@ -42,13 +42,13 @@
                 GetCourseInfoResponse courseDataResp = new GetCourseInfoResponse();
                 if (curResp.CourseId != 0 || curResp.JournalId != 0)
                 {
-                    string dataResponse = ReqHandler.fetchCourseData(curResp.JournalId, curResp.CourseId, curResp.CourseDate);
+                    string dataResponse = ReqHandler.fetchCourseData(curResp.JournalId, curResp.CourseId, curResp.CourseDate_Converted);
                     courseDataResp = WaldhartDeserializer.ConvertGetCourseDataResponse(dataResponse);
                 } else
                 {
                     courseDataResp.courseDate = curResp.CourseDate.ToString();
-                    courseDataResp.courseSkill = curResp.Title;
-                    courseDataResp.courseTime = curResp.TimeSpan;
+                    courseDataResp.courseSkill = curResp.Data01;
+                    courseDataResp.courseTime = curResp.Data04;
                 }
 
 
