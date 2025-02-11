@@ -2,24 +2,63 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using CommunityToolkit;
+    using CommunityToolkit.Mvvm.ComponentModel;
 
-    public class Course
+    public partial class Course : ObservableObject
     {
+        public Course()
+        {
+            courseTimeSpan = endTime - startTime;
+        }
 
         public string? Title { get; set; }
         public DateOnly Date { get; set; }
-        public TimeOnly startTime {  get; set; }
-        public TimeOnly endTime { get; set; }
-        public TimeSpan courseTimeSpan  
-        { 
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(courseTimeSpan))]
+        public TimeOnly startTime;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(courseTimeSpan))]
+        public TimeOnly endTime;
+
+        //partial void OnStartTimeChanged(TimeOnly oldValue, TimeOnly newValue)
+        //{
+        //    courseTimeSpan = endTime - startTime;
+        //}
+
+        //partial void OnEndTimeChanged(TimeOnly oldValue, TimeOnly newValue)
+        //{
+        //    courseTimeSpan = endTime - startTime;
+
+        //}
+
+
+        //[ObservableProperty]
+        public TimeSpan _courseTimeSpan;
+
+        public TimeSpan courseTimeSpan
+        {
             get
             {
-                //throw new NotImplementedException();
-                return endTime - startTime;
-                //return new TimeSpan();
+                if(EndTime != TimeOnly.MinValue || StartTime != TimeOnly.MinValue)
+                {
+                    _courseTimeSpan = endTime - startTime;
+                }
+                return _courseTimeSpan;
+            }
+            set
+            {
+                StartTime = TimeOnly.MinValue;
+                EndTime = TimeOnly.MinValue;
+                _courseTimeSpan = value;
+                OnPropertyChanged(nameof(courseTimeSpan));
+
+
             }
         }
 

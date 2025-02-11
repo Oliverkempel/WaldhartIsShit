@@ -33,7 +33,7 @@
             Console.WriteLine(res);
 
             string? result = ReqHandler.fetchCoursesFromDateRange(new DateOnly(2025, 1, 2), new DateOnly(2025, 1, 29));
-            List<GetCoursesForecastResponse> resp = WaldhartDeserializer.ConvertGetCoursesForecastResponse(result);
+            List<GetCoursesForecastResponse> resp = Waldhart.ConvertGetCoursesForecastResponse(result);
 
             foreach(GetCoursesForecastResponse curResp in resp)
             {
@@ -43,7 +43,7 @@
                 if (curResp.CourseId != 0 || curResp.JournalId != 0)
                 {
                     string dataResponse = ReqHandler.fetchCourseData(curResp.JournalId, curResp.CourseId, curResp.CourseDate_Converted);
-                    courseDataResp = WaldhartDeserializer.ConvertGetCourseDataResponse(dataResponse);
+                    courseDataResp = Waldhart.ConvertGetCourseDataResponse(dataResponse);
                 } else
                 {
                     courseDataResp.courseDate = curResp.CourseDate.ToString();

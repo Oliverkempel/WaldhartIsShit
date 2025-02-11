@@ -14,65 +14,63 @@
 
     using WaldhartIsShit;
     using WaldhartIsShit.Models;
+    using System.ComponentModel;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
-        WaldhartIsShit.WaldhartRequestHandler ReqHandler;
+        WaldhartRequestHandler ReqHandler;
+
+        Waldhart Waldhart;
+
+        public CollectionViewSource obsColCourses { get; set; }
+        private ICollectionView TabColViewCourses { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
 
-            ReqHandler = new WaldhartIsShit.WaldhartRequestHandler();
+            Waldhart = new Waldhart();
+
+            Waldhart.excludedCourseNames.Add("off");
+            Waldhart.excludedCourseNames.Add("do not book");
+            Waldhart.excludedCourseNames.Add("fri");
+            Waldhart.excludedCourseNames.Add("ORIGO");
+
+            obsColCourses = new CollectionViewSource() { Source = Waldhart.Courses };
+            TabColViewCourses = obsColCourses.View;
+
+            ResultsList.ItemsSource = TabColViewCourses;
+
+            fromDateInput.SelectedDate = new DateTime(2025, 1, 1);
+            toDateInput.SelectedDate = new DateTime(2025, 1, 31);
+
         }
 
         private void Login_Click(object sender, RoutedEventArgs e)
         {
-            ReqHandler.login(UserIdInput.Text, UserIdInput.Text);
+            Waldhart.login(UserIdInput.Text, UserIdInput.Text);
 
-            string? result = ReqHandler.fetchCoursesFromDateRange(new DateOnly(2025, 2, 9), new DateOnly(2025, 2, 25));
-            List<GetCoursesForecastResponse> resp = WaldhartDeserializer.ConvertGetCoursesForecastResponse(result);
+            DateOnly fromdate_tmp = DateOnly.FromDateTime((DateTime)fromDateInput.SelectedDate);
+            DateOnly todate_tmp = DateOnly.FromDateTime((DateTime)toDateInput.SelectedDate);
 
+            Waldhart.fetchCourses(fromdate_tmp, todate_tmp);
+            
+            //ResultsList.ItemsSource = Waldhart.Courses;
+        }
 
-            List<GetCourseInfoResponse> courseDataResps = new List<GetCourseInfoResponse>();
-            List<Course> courses = new List<Course>();
+        private void CalculateHours_Click(object sender, RoutedEventArgs e)
+        {
+            DateOnly fromdate_tmp = DateOnly.FromDateTime((DateTime)fromDateInput.SelectedDate);
+            DateOnly todate_tmp = DateOnly.FromDateTime((DateTime)toDateInput.SelectedDate);
 
+            TimeSpan res = Waldhart.summarizeHours(fromdate_tmp, todate_tmp);
 
-            foreach (var curResp in resp) {
-                GetCourseInfoResponse courseDataResp = new GetCourseInfoResponse();
-                if (curResp.CourseId != 0 || curResp.JournalId != 0)
-                {
-                    string dataResponse = ReqHandler.fetchCourseData(curResp.JournalId, curResp.CourseId, curResp.CourseDate_Converted);
-                    courseDataResp = WaldhartDeserializer.ConvertGetCourseDataResponse(dataResponse);
-                    courseDataResp.Title = curResp.Data01;
-                    courseDataResp.courseDate = curResp.CourseDate;
-                }
-                else
-                {
-                    courseDataResp.courseDate = curResp.CourseDate.ToString();
-                    courseDataResp.Title = curResp.Data01;
-                    courseDataResp.courseTime = curResp.Data04;
-                }
+            double hours = res.TotalHours;
 
-                courseDataResps.Add(courseDataResp);
-                string[] splittTimeSpanString = courseDataResp.courseTime.Split("-");
-                string fromStr = splittTimeSpanString[0];
-                string toStr = splittTimeSpanString[1];
-
-                TimeOnly startTimeConverted = TimeOnly.Parse(fromStr.Trim());
-                TimeOnly endTimeConverted = TimeOnly.Parse(toStr.Trim());
-
-                courses.Add(new Course { Title = courseDataResp.Title, Date = curResp.CourseDate_Converted, startTime = startTimeConverted, endTime = endTimeConverted});
-            }
-
-
-
-            ResultsList.ItemsSource = courses;
-            //ResultsList.ItemsSource = courseDataResps;
-
+            CalculatedHoursBox.Text = hours.ToString();
         }
     }
 }

@@ -19,12 +19,26 @@
         <Label VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30">Waldhart is shit UI</Label>
 
         <StackPanel Grid.Row="1" Margin="10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel>
+                    <Label FontWeight="SemiBold" Content="From date:"/>
+                    <DatePicker x:Name="fromDateInput"/>
+                </StackPanel>
+                <StackPanel>
+                    <Label FontWeight="SemiBold" Content="To date:"/>
+                    <DatePicker x:Name="toDateInput"/>
+                </StackPanel>
+            </StackPanel>
+
             <Label FontWeight="SemiBold" Content="Waldhart User ID:"/>
             <TextBox x:Name="UserIdInput" Text="94" Padding="10" FontWeight="SemiBold"/>
-            <Button Content="Fetch Infos" Click="Login_Click"/>
+            <Button Content="Fetch Infos" Click="Login_Click" Padding="10" HorizontalAlignment="Stretch"/>
+            <Label FontWeight="SemiBold" Content="Summarized hours:"/>
+            <TextBox x:Name="CalculatedHoursBox" Text="" Padding="10" FontWeight="SemiBold" IsReadOnly="True"/>
+            <Button Content="Calculate hours" Click="CalculateHours_Click" Padding="10" HorizontalAlignment="Stretch"/>
         </StackPanel>
 
-        <DataGrid Grid.Row="2" x:Name="ResultsList" Margin="10">
+        <DataGrid Grid.Row="2" x:Name="ResultsList" Margin="10" ScrollViewer.CanContentScroll="False">
             <!--<DataGrid.Columns>
                 <DataGridTextColumn/>
             </DataGrid.Columns>-->

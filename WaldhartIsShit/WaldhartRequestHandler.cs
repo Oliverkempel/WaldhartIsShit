@@ -50,7 +50,7 @@
         }
 
         /// <summary>
-        /// Fetches courses for a specified date range.
+        /// Fetches Courses for a specified date range.
         /// </summary>
         /// <param name="fromDate">The from date in ISO format. yyyy-MM-dd</param>
         /// <param name="toDate">The to date in ISO format. yyyy-MM-dd</param>

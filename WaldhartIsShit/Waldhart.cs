@@ -2,23 +2,109 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Linq;
+    using System.Net.Http.Headers;
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
     using HtmlAgilityPack;
 
+    using WaldhartIsShit.Models;
     using WaldhartIsShit.Models.Responses;
 
-    public static class WaldhartDeserializer
+    public class Waldhart
     {
+        public WaldhartRequestHandler RequestHandler { get; set; }
+        public ObservableCollection<Course> Courses { get; set;} = new ObservableCollection<Course>();
+
+        public List<string> excludedCourseNames { get; set;} = new List<string>();
+
+        public Waldhart()
+        {
+            RequestHandler = new WaldhartRequestHandler();
+        }
+
+        public void login(string username, string password)
+        {
+            RequestHandler.login(username, password);
+        }
+
+        public List<Course> fetchCourses(DateOnly fromDate, DateOnly toDate)
+        {
+            // Gets Courses forecast from date range & converts to useable object
+            string? result = RequestHandler.fetchCoursesFromDateRange(fromDate, toDate);
+            List<GetCoursesForecastResponse> resp = ConvertGetCoursesForecastResponse(result);
+
+            // Inits list of course info response objects
+            List<GetCourseInfoResponse> courseDataResps = new List<GetCourseInfoResponse>();
+
+            // Inits list of courseses objects (final datatype)
+            //List<Course> courses = new List<Course>();
+
+            // Loops though objects generated from Courses forecast call
+            foreach (var curResp in resp)
+            {
+
+                // Inits GetCourseInfoResponse object for storeing data.
+                GetCourseInfoResponse courseDataResp = new GetCourseInfoResponse();
+
+                // Checks if current forecast item (course) has either Course id or Journal id
+                if (curResp.CourseId != 0 || curResp.JournalId != 0)
+                {
+                    // If current forecast item (course) has either courseId or Journal Id fetch extra data using fetchCourseData endpoint
+                    string dataResponse = RequestHandler.fetchCourseData(curResp.JournalId, curResp.CourseId, curResp.CourseDate_Converted);
+
+                    // Deserialize raw html response to GetCourseInfoResponse Object
+                    courseDataResp = ConvertGetCourseDataResponse(dataResponse);
+
+                    // Set title & courseDate from data fetched from course forecast, as this is not found in fetchCourseData endpoint
+                    courseDataResp.Title = curResp.Data01;
+                    courseDataResp.courseDate = curResp.CourseDate;
+                }
+                else
+                {
+                    // If no journalId or CourseId exists, build GetCourseInfoResponse from forecast data instead
+                    courseDataResp.courseDate = curResp.CourseDate.ToString();
+                    courseDataResp.Title = curResp.Data01;
+                    courseDataResp.courseTime = curResp.Data04;
+                }
+
+                // Add current GetCourseInfoResponse object to list
+                courseDataResps.Add(courseDataResp);
+
+
+                // Convert courseTime property to starttime and endtime
+                string[] splittTimeSpanString = courseDataResp.courseTime.Split("-");
+                string fromStr = splittTimeSpanString[0];
+                string toStr = splittTimeSpanString[1];
+
+                TimeOnly startTimeConverted = TimeOnly.Parse(fromStr.Trim());
+                TimeOnly endTimeConverted = TimeOnly.Parse(toStr.Trim());
+
+
+                // Check if course is excluded
+                if (!excludedCourseNames.Any(courseDataResp.Title.Contains))
+                {
+                    // Create, populate and add the final course object to the Courses list
+                    Courses.Add(new Course { Title = courseDataResp.Title, Date = curResp.CourseDate_Converted, startTime = startTimeConverted, endTime = endTimeConverted });
+                }
+            }
+
+            return Courses.ToList();
+        }
+
+        public TimeSpan summarizeHours(DateOnly fromDate, DateOnly toDate)
+        {
+            List<Course> result = Courses.Where(x => x.Date >= fromDate && x.Date <= toDate).ToList();
+            
+            return new TimeSpan(result.Sum(x => x.courseTimeSpan.Ticks));
+        }
 
         public static List<GetCoursesForecastResponse> ConvertGetCoursesForecastResponse(string response)
         {
             List<GetCoursesForecastResponse> methodResponse = new List<GetCoursesForecastResponse>();
-
-            string WaldhartUrl = "https://kvitfjell-desk.skischoolshop.com";
             HtmlDocument? HtmlDoc = new HtmlDocument();
 
             HtmlDoc.LoadHtml(response);
@@ -33,7 +119,7 @@
                 DayNodestr = m.Value;
                 //DateOnly courseDate = DateOnly.Parse(dateString);
 
-                // Find courses under this date
+                // Find Courses under this date
                 HtmlNode? nextSibling = DayNode.NextSibling;
 
                 while (nextSibling != null && !nextSibling.GetAttributeValue("data-role", "").Equals("list-divider"))
