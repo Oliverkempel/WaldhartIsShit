@@ -21,9 +21,8 @@
     /// </summary>
     public partial class MainWindow : Window
     {
-        WaldhartRequestHandler ReqHandler;
-
         Waldhart Waldhart;
+        Capitech Capitech;
 
         public CollectionViewSource obsColCourses { get; set; }
         private ICollectionView TabColViewCourses { get; set; }
@@ -33,6 +32,7 @@
             InitializeComponent();
 
             Waldhart = new Waldhart();
+            Capitech = new Capitech();
 
             Waldhart.excludedCourseNames.Add("off");
             Waldhart.excludedCourseNames.Add("do not book");
@@ -52,11 +52,15 @@
         private void Login_Click(object sender, RoutedEventArgs e)
         {
             Waldhart.login(UserIdInput.Text, UserIdInput.Text);
+            Capitech.login("oliversbutik@gmail.com", "Okbutik29");
 
             DateOnly fromdate_tmp = DateOnly.FromDateTime((DateTime)fromDateInput.SelectedDate);
             DateOnly todate_tmp = DateOnly.FromDateTime((DateTime)toDateInput.SelectedDate);
 
-            Waldhart.fetchCourses(fromdate_tmp, todate_tmp);
+            //Task.Run(() => {
+                Waldhart.fetchCourses(fromdate_tmp, todate_tmp);
+            //});
+
             
             //ResultsList.ItemsSource = Waldhart.Courses;
         }
